@@ -1,0 +1,1665 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vendor Security Assessment - vCISO Edition</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #f5f7fa;
+            padding: 15px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        header {
+            background: #b3d9ff;
+            color: #2d3748;
+            padding: 20px 25px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        header .logo {
+            width: 60px;
+            height: auto;
+            flex-shrink: 0;
+        }
+
+        header .header-text {
+            flex: 1;
+        }
+
+        header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        header p {
+            font-size: 14px;
+        }
+
+        .content {
+            padding: 20px;
+        }
+
+        .vendor-info {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+        }
+
+        .vendor-info h2 {
+            font-size: 18px;
+            margin-bottom: 12px;
+            color: #495057;
+        }
+
+        .form-group {
+            margin-bottom: 12px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 4px;
+            font-weight: 500;
+            color: #495057;
+        }
+
+        input[type="text"], input[type="date"], textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .section {
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .section:last-child {
+            border-bottom: none;
+        }
+
+        .section h2 {
+            color: #2d3748;
+            font-size: 20px;
+            margin-bottom: 6px;
+        }
+
+        .section-description {
+            color: #718096;
+            font-size: 14px;
+            margin-bottom: 15px;
+            font-style: italic;
+        }
+
+        .question {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 6px;
+            border-left: 4px solid #ddd;
+        }
+
+        .question-text {
+            font-weight: 500;
+            margin-bottom: 10px;
+            color: #2d3748;
+            font-size: 15px;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .option {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .option:hover {
+            border-color: #b3d9ff;
+            background: #f7fafc;
+        }
+
+        .option input[type="radio"] {
+            margin-right: 8px;
+            cursor: pointer;
+        }
+
+        .option.selected {
+            border-color: #b3d9ff;
+            background: #e6f2ff;
+        }
+
+        .risk-indicator {
+            margin-top: 8px;
+            padding: 10px;
+            border-radius: 4px;
+            font-size: 13px;
+            display: none;
+        }
+
+        .risk-indicator.show {
+            display: block;
+        }
+
+        .risk-critical {
+            background: #fee;
+            border-left: 4px solid #dc3545;
+            color: #721c24;
+        }
+
+        .risk-high {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            color: #856404;
+        }
+
+        .risk-medium {
+            background: #fff8e1;
+            border-left: 4px solid #ff9800;
+            color: #663c00;
+        }
+
+        .risk-low {
+            background: #d4edda;
+            border-left: 4px solid #28a745;
+            color: #155724;
+        }
+
+        .notes-area {
+            margin-top: 12px;
+        }
+
+        .notes-area textarea {
+            min-height: 50px;
+            resize: vertical;
+        }
+
+        .score-card {
+            background: white;
+            padding: 15px;
+            border-radius: 6px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        .score-card h3 {
+            margin-bottom: 12px;
+            color: #2d3748;
+        }
+
+        .score-breakdown {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .score-item {
+            padding: 10px;
+            border-radius: 4px;
+            text-align: center;
+        }
+
+        .score-item .label {
+            font-size: 12px;
+            opacity: 0.8;
+            margin-bottom: 4px;
+        }
+
+        .score-item .value {
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .overall-risk {
+            margin-top: 12px;
+            padding: 12px;
+            border-radius: 4px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 15px;
+        }
+
+        .actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: #b3d9ff;
+            color: #2d3748;
+            border: 1px solid #99ccff;
+        }
+
+        .btn-primary:hover {
+            background: #99ccff;
+        }
+
+        .btn-secondary {
+            background: #e9ecef;
+            color: #2d3748;
+            border: 1px solid #dee2e6;
+        }
+
+        .btn-secondary:hover {
+            background: #dee2e6;
+        }
+
+        .btn-success {
+            background: #b3d9ff;
+            color: #2d3748;
+            border: 1px solid #99ccff;
+        }
+
+        .btn-success:hover {
+            background: #99ccff;
+        }
+
+        /* Email Preview Styles */
+        .email-preview-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border: 1px solid #dee2e6;
+        }
+
+        .email-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #dee2e6;
+        }
+
+        .email-tab {
+            padding: 10px 20px;
+            background: none;
+            border: none;
+            border-bottom: 3px solid transparent;
+            color: #6c757d;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s;
+            margin-bottom: -2px;
+        }
+
+        .email-tab:hover {
+            color: #495057;
+        }
+
+        .email-tab.active {
+            color: #2d3748;
+            border-bottom-color: #b3d9ff;
+            background: white;
+            border-radius: 8px 8px 0 0;
+        }
+
+        .email-content {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            line-height: 1.5;
+            white-space: pre-wrap;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .email-subject {
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .copy-email-btn {
+            float: right;
+            padding: 5px 10px;
+            background: #b3d9ff;
+            color: #2d3748;
+            border: none;
+            border-radius: 4px;
+            font-size: 13px;
+            cursor: pointer;
+        }
+
+        .copy-email-btn:hover {
+            background: #99ccff;
+        }
+
+        footer {
+            background: #f8f9fa;
+            padding: 15px;
+            text-align: center;
+            color: #6c757d;
+            font-size: 13px;
+        }
+
+        .progress-bar {
+            height: 6px;
+            background: #e9ecef;
+            border-radius: 3px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: #b3d9ff;
+            transition: width 0.3s;
+        }
+
+        details summary {
+            outline: none;
+        }
+
+        details summary:hover {
+            color: #1a365d;
+        }
+
+        details[open] summary {
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <!-- LOGO PLACEHOLDER: Replace 'data:image/svg+xml,...' below with your base64 logo -->
+            <!-- Format: data:image/png;base64,YOUR_BASE64_STRING_HERE -->
+            <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Crect width='80' height='80' fill='%232d3748' rx='8'/%3E%3Ctext x='50%25' y='50%25' font-family='Arial' font-size='36' fill='%23b3d9ff' text-anchor='middle' dominant-baseline='middle'%3E🔒%3C/text%3E%3C/svg%3E" 
+                 alt="Company Logo" 
+                 class="logo">
+            <div class="header-text">
+                <h1>Initial Vendor Security Triage</h1>
+                <p>Quick 15-question assessment to identify red flags before engaging your security team.</p>
+            </div>
+        </header>
+
+        <div class="content">
+            <div class="vendor-info">
+                <h2>What vendor are you evaluating?</h2>
+                <p style="font-size: 14px; color: #718096; margin-bottom: 15px;">Fill out the questions below based on what the vendor tells you or what's on their website. This will help you spot red flags.</p>
+                <div class="form-group">
+                    <label for="vendorName">Vendor/Company Name</label>
+                    <input type="text" id="vendorName" placeholder="e.g., Acme Software Inc.">
+                </div>
+                <div class="form-group">
+                    <label for="assessmentDate">Today's Date</label>
+                    <input type="date" id="assessmentDate">
+                </div>
+                <div class="form-group">
+                    <label for="assessor">Your Name</label>
+                    <input type="text" id="assessor" placeholder="Your name">
+                </div>
+            </div>
+
+            <div class="vendor-info" style="margin-top: 15px; background: #fff9e6; border-left: 4px solid #ffcc00;">
+                <h2>What data will this vendor access?</h2>
+                <p style="font-size: 13px; color: #718096; margin-bottom: 12px;">Check all that apply. This helps determine how carefully you need to vet them.</p>
+                <div style="display: flex; flex-direction: column; gap: 8px;">
+                    <label style="display: flex; align-items: center; font-weight: normal; cursor: pointer;">
+                        <input type="checkbox" id="dataEmployee" style="margin-right: 8px;">
+                        <span style="font-size: 14px;">Employee personal information (names, emails, SSNs)</span>
+                    </label>
+                    <label style="display: flex; align-items: center; font-weight: normal; cursor: pointer;">
+                        <input type="checkbox" id="dataCustomer" style="margin-right: 8px;">
+                        <span style="font-size: 14px;">Customer/client data</span>
+                    </label>
+                    <label style="display: flex; align-items: center; font-weight: normal; cursor: pointer;">
+                        <input type="checkbox" id="dataFinancial" style="margin-right: 8px;">
+                        <span style="font-size: 14px;">Financial information (credit cards, bank accounts, payment data)</span>
+                    </label>
+                    <label style="display: flex; align-items: center; font-weight: normal; cursor: pointer;">
+                        <input type="checkbox" id="dataHealthcare" style="margin-right: 8px;">
+                        <span style="font-size: 14px;">Healthcare/medical information (HIPAA protected data)</span>
+                    </label>
+                    <label style="display: flex; align-items: center; font-weight: normal; cursor: pointer;">
+                        <input type="checkbox" id="dataNetwork" style="margin-right: 8px;">
+                        <span style="font-size: 14px;">Sensitive access to internal networks or systems</span>
+                    </label>
+                    <label style="display: flex; align-items: center; font-weight: normal; cursor: pointer;">
+                        <input type="checkbox" id="dataBasic" style="margin-right: 8px;">
+                        <span style="font-size: 14px;">Just basic business operations (low sensitivity)</span>
+                    </label>
+                </div>
+                <div id="dataTypeWarning" style="display: none; margin-top: 12px; padding: 10px; background: #ffebee; border-radius: 4px; font-size: 13px; color: #c62828;">
+                    ⚠️ You selected sensitive data types. Be extra careful with this vendor assessment - any red flags should trigger a conversation with your vCISO.
+                </div>
+            </div>
+
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+
+            <div style="background: #fff; padding: 15px; border-radius: 8px; margin-bottom: 15px; border: 2px solid #b3d9ff;">
+                <h3 style="text-align: center; margin-bottom: 15px; color: #2d3748;">Vendor Assessment Process</h3>
+                <div style="display: flex; justify-content: space-between; align-items: start; gap: 10px; flex-wrap: wrap;">
+                    <div style="flex: 1; min-width: 120px; text-align: center;">
+                        <div style="background: #b3d9ff; width: 45px; height: 45px; border-radius: 50%; margin: 0 auto 8px; display: flex; align-items: center; justify-content: center; font-size: 18px;">1</div>
+                        <div style="font-weight: 600; margin-bottom: 4px; color: #2d3748; font-size: 14px;">Initial Screen</div>
+                        <div style="font-size: 11px; color: #718096;">Complete this questionnaire</div>
+                    </div>
+                    <div style="align-self: center; color: #b3d9ff; font-size: 20px; flex-shrink: 0;">→</div>
+                    <div style="flex: 1; min-width: 120px; text-align: center;">
+                        <div style="background: #e6f2ff; width: 45px; height: 45px; border-radius: 50%; margin: 0 auto 8px; display: flex; align-items: center; justify-content: center; font-size: 18px; border: 2px solid #b3d9ff;">2</div>
+                        <div style="font-weight: 600; margin-bottom: 4px; color: #2d3748; font-size: 14px;">Request Details</div>
+                        <div style="font-size: 11px; color: #718096;">Send email to vendor</div>
+                    </div>
+                    <div style="align-self: center; color: #b3d9ff; font-size: 20px; flex-shrink: 0;">→</div>
+                    <div style="flex: 1; min-width: 120px; text-align: center;">
+                        <div style="background: #e6f2ff; width: 45px; height: 45px; border-radius: 50%; margin: 0 auto 8px; display: flex; align-items: center; justify-content: center; font-size: 18px; border: 2px solid #b3d9ff;">3</div>
+                        <div style="font-weight: 600; margin-bottom: 4px; color: #2d3748; font-size: 14px;">Review Findings</div>
+                        <div style="font-size: 11px; color: #718096;">Share with vCISO</div>
+                    </div>
+                    <div style="align-self: center; color: #b3d9ff; font-size: 20px; flex-shrink: 0;">→</div>
+                    <div style="flex: 1; min-width: 120px; text-align: center;">
+                        <div style="background: #e6f2ff; width: 45px; height: 45px; border-radius: 50%; margin: 0 auto 8px; display: flex; align-items: center; justify-content: center; font-size: 18px; border: 2px solid #b3d9ff;">4</div>
+                        <div style="font-weight: 600; margin-bottom: 4px; color: #2d3748; font-size: 14px;">Decision</div>
+                        <div style="font-size: 11px; color: #718096;">Approve or find alternative</div>
+                    </div>
+                </div>
+            </div>
+
+            <details style="margin-bottom: 15px; padding: 12px; background: #f8f9fa; border-radius: 6px; border-left: 4px solid #b3d9ff;">
+                <summary style="cursor: pointer; font-weight: 600; color: #2d3748; user-select: none;">
+                    📖 How does vendor security assessment work? (click to expand)
+                </summary>
+                <div style="margin-top: 10px; font-size: 13px; line-height: 1.5; color: #4a5568;">
+                    <p style="margin-bottom: 8px;"><strong>The typical process:</strong></p>
+                    <ol style="margin-left: 20px; margin-bottom: 10px;">
+                        <li style="margin-bottom: 6px;"><strong>Buyer asks questions</strong> - You send due diligence questions to potential vendors</li>
+                        <li style="margin-bottom: 6px;"><strong>Vendor responds</strong> - The seller completes the questionnaire with documentation</li>
+                        <li style="margin-bottom: 6px;"><strong>Risk assessment</strong> - You evaluate their answers and document any concerns</li>
+                        <li style="margin-bottom: 6px;"><strong>Decision</strong> - Approve, negotiate better terms, or look for alternatives</li>
+                    </ol>
+                    <p style="margin-top: 10px; padding: 8px; background: #e6f2ff; border-radius: 4px;">
+                        <strong>💡 Why this matters:</strong> Catching security gaps early lets you negotiate better contracts, require remediation plans, or avoid vendors who'll become expensive problems later.
+                    </p>
+                </div>
+            </details>
+
+            <div id="questionnaire"></div>
+
+            <div class="score-card" id="scoreCard">
+                <h3>🎯 Should You Be Concerned?</h3>
+                <div class="score-breakdown" id="scoreBreakdown"></div>
+                <div class="overall-risk" id="overallRisk">Start answering questions to see if there are any red flags</div>
+            </div>
+
+            <div class="actions">
+                <button class="btn-primary" onclick="exportJSON()">Export JSON</button>
+                <button class="btn-primary" onclick="exportCSV()">Export CSV</button>
+                <button class="btn-primary" onclick="shareLink()">Copy Share Link</button>
+                <button class="btn-success" onclick="saveProgress()">Save Progress</button>
+                <button class="btn-secondary" onclick="loadProgress()">Load Saved</button>
+                <button class="btn-secondary" onclick="resetAssessment()">Reset</button>
+            </div>
+
+            <!-- Live Email Preview Section -->
+            <div class="email-preview-section" id="emailPreviewSection">
+                <h3 style="margin-bottom: 20px;">📧 Live Email Previews</h3>
+                <p style="font-size: 14px; color: #718096; margin-bottom: 20px;">These emails update automatically as you answer questions above.</p>
+                
+                <div class="email-tabs">
+                    <button class="email-tab active" onclick="showEmailTab('vendor')">Email to Vendor</button>
+                    <button class="email-tab" onclick="showEmailTab('vciso')">Email to vCISO</button>
+                </div>
+                
+                <div id="vendorEmailContent" class="email-content">
+                    <button class="copy-email-btn" onclick="copyEmailContent('vendor')">📋 Copy</button>
+                    <div class="email-subject">Subject: <span id="vendorSubject">Security Documentation Request</span></div>
+                    <div id="vendorEmailBody">Start filling out the assessment above to see the email that will be generated.</div>
+                </div>
+                
+                <div id="vcisoEmailContent" class="email-content" style="display: none;">
+                    <button class="copy-email-btn" onclick="copyEmailContent('vciso')">📋 Copy</button>
+                    <div class="email-subject">Subject: <span id="vcisoSubject">Vendor Security Assessment</span></div>
+                    <div id="vcisoEmailBody">Start filling out the assessment above to see the email that will be generated.</div>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p><strong>This is a screening tool, not a complete security audit.</strong> Use it to identify obvious red flags and know when to involve your vCISO for a deeper assessment.</p>
+            <p style="margin-top: 10px; font-size: 12px;">Questions? Contact your vCISO • Built for non-technical users</p>
+        </footer>
+    </div>
+
+    <script>
+        const questionnaire = [
+            {
+                section: "Vendor Background",
+                description: "Understanding who you're dealing with",
+                questions: [
+                    {
+                        id: "q1",
+                        text: "How many employees does the vendor have?",
+                        hint: "Check their LinkedIn company page or 'About Us' section. Ask your sales contact if unclear.",
+                        options: [
+                            { value: "large", label: "100+ employees", risk: "low" },
+                            { value: "medium", label: "20-99 employees", risk: "low" },
+                            { value: "small", label: "5-19 employees", risk: "medium" },
+                            { value: "tiny", label: "Less than 5 employees", risk: "medium" }
+                        ],
+                        riskMessages: {
+                            medium: "⚠️ Smaller vendors may have limited security resources. Increase scrutiny on other questions.",
+                            low: "Company size suggests they have dedicated resources for security operations."
+                        }
+                    },
+                    {
+                        id: "q2",
+                        text: "How long has the company been in business?",
+                        hint: "Look for founding year on their website or LinkedIn. Check domain registration date.",
+                        options: [
+                            { value: "established", label: "5+ years", risk: "low" },
+                            { value: "growing", label: "2-5 years", risk: "medium" },
+                            { value: "new", label: "Less than 2 years", risk: "medium" }
+                        ],
+                        riskMessages: {
+                            medium: "⚠️ Newer companies may still be building their security program. Ask specific questions about what they have in place.",
+                            low: "Established companies typically have mature security practices."
+                        }
+                    }
+                ]
+            },
+            {
+                section: "Security Documentation",
+                description: "What evidence exists of their security practices?",
+                questions: [
+                    {
+                        id: "q3",
+                        text: "Do they have a public security/trust center with documentation?",
+                        hint: "Look for a 'Trust Center', 'Security', or 'Compliance' page (example: trust.adversis.io). Should include security policies, compliance certifications, and documentation.",
+                        options: [
+                            { value: "comprehensive", label: "Yes, comprehensive trust center with policies and certifications", risk: "low" },
+                            { value: "basic", label: "Some security info on website but limited", risk: "medium" },
+                            { value: "none", label: "No public security documentation", risk: "high" }
+                        ],
+                        riskMessages: {
+                            high: "⚠️ Lack of public security documentation suggests either immaturity or unwillingness to be transparent. Request their security whitepaper or questionnaire responses.",
+                            medium: "Basic documentation is a start. Request detailed security documentation during procurement.",
+                            low: "Strong transparency signal. Review their trust center for relevant certifications and policies."
+                        }
+                    },
+                    {
+                        id: "q4",
+                        text: "Do they have security certifications (SOC 2 Type II, ISO 27001, etc.)?",
+                        hint: "Check their trust center or ask sales for certification documents. SOC 2 Type II and ISO 27001 are industry standards.",
+                        options: [
+                            { value: "yes", label: "Yes, current SOC 2 Type II, ISO 27001, or equivalent", risk: "low" },
+                            { value: "inprocess", label: "Working towards certification", risk: "medium" },
+                            { value: "no", label: "No certifications", risk: "high" }
+                        ],
+                        riskMessages: {
+                            high: "⚠️ No third-party validation of security practices. For critical systems, consider requiring certification or extensive questionnaire response.",
+                            medium: "Vendors pursuing certification are at least security-aware. Ask for timeline and interim audit results.",
+                            low: "Third-party audits provide independent validation of security controls."
+                        }
+                    }
+                ]
+            },
+            {
+                section: "Data Handling",
+                description: "How they protect and manage your data",
+                questions: [
+                    {
+                        id: "q5",
+                        text: "Do they encrypt data at rest and in transit?",
+                        hint: "Check their security documentation or ask: 'Do you encrypt data when stored (at rest) and when transmitted (in transit)?'",
+                        options: [
+                            { value: "both", label: "Yes, both at rest and in transit", risk: "low" },
+                            { value: "partial", label: "Only in transit, or unclear about at-rest", risk: "high" },
+                            { value: "no", label: "No encryption or they don't know", risk: "critical" }
+                        ],
+                        riskMessages: {
+                            critical: "🛑 Unencrypted data is unacceptable for any sensitive information. This is a fundamental security control.",
+                            high: "⚠️ Encryption in transit alone is insufficient. Data at rest must also be encrypted for sensitive information.",
+                            low: "Encryption at rest and in transit is the baseline for data security."
+                        }
+                    },
+                    {
+                        id: "q6",
+                        text: "Can you export your data and have it deleted on demand?",
+                        hint: "Ask: 'Can I get my data in a standard format if we leave? How do you handle data deletion requests?'",
+                        options: [
+                            { value: "yes", label: "Yes, self-service export and documented deletion process", risk: "low" },
+                            { value: "manual", label: "Available but requires contacting support", risk: "medium" },
+                            { value: "unclear", label: "Unclear or no deletion process", risk: "high" }
+                        ],
+                        riskMessages: {
+                            high: "⚠️ You should control your data lifecycle. Lack of clear export/deletion raises vendor lock-in and compliance concerns.",
+                            medium: "Manual processes work but add friction. For critical data, request SLAs for export and deletion.",
+                            low: "Good data portability and right to deletion support."
+                        }
+                    },
+                    {
+                        id: "q7",
+                        text: "Where is your data physically stored?",
+                        hint: "Important for GDPR and data residency requirements. Ask: 'Which countries/regions will our data be stored in?'",
+                        options: [
+                            { value: "known", label: "They specified locations that meet our requirements", risk: "low" },
+                            { value: "vague", label: "Vague answer ('the cloud', 'AWS', etc.)", risk: "medium" },
+                            { value: "concerning", label: "Unknown or locations that create compliance issues", risk: "high" }
+                        ],
+                        riskMessages: {
+                            high: "⚠️ Data location matters for GDPR, data sovereignty, and compliance. Get specific regions in writing.",
+                            medium: "'The cloud' isn't an answer. Request specific AWS regions, data center locations, or Azure zones.",
+                            low: "Clear data residency aligns with your compliance requirements."
+                        }
+                    }
+                ]
+            },
+            {
+                section: "Compliance & Legal",
+                description: "Regulatory and contractual protections",
+                questions: [
+                    {
+                        id: "q8",
+                        text: "Will they sign a Data Processing Agreement (DPA) or Business Associate Agreement (BAA)?",
+                        hint: "Required for GDPR (DPA) and HIPAA (BAA). Ask: 'Do you have a standard DPA/BAA we can review?'",
+                        options: [
+                            { value: "yes", label: "Yes, they have standard agreements ready", risk: "low" },
+                            { value: "custom", label: "Will negotiate custom terms", risk: "medium" },
+                            { value: "no", label: "Won't sign or claim it's not needed", risk: "critical" }
+                        ],
+                        riskMessages: {
+                            critical: "🛑 For regulated data (healthcare, EU personal data), a DPA/BAA is legally required. Do not proceed.",
+                            medium: "Custom terms add delay but may be necessary. Engage legal counsel early.",
+                            low: "Standard DPA/BAA shows they understand compliance requirements."
+                        }
+                    }
+                ]
+            },
+            {
+                section: "Privacy & Data Governance",
+                description: "Critical privacy red flags",
+                questions: [
+                    {
+                        id: "q9",
+                        text: "Do they share your data with sub-processors or third parties?",
+                        hint: "Ask: 'Do you share our data with any third parties? Can you provide a list?' This is required for GDPR.",
+                        options: [
+                            { value: "none", label: "No data sharing with third parties", risk: "low" },
+                            { value: "listed", label: "Yes, with a documented list of sub-processors", risk: "low" },
+                            { value: "yes_no_list", label: "Yes, but won't provide the list", risk: "high" },
+                            { value: "unclear", label: "Unclear or won't say", risk: "high" }
+                        ],
+                        riskMessages: {
+                            high: "⚠️ Hidden sub-processors are a GDPR violation and security blind spot. You need to know who touches your data.",
+                            low: "Transparency about data sharing supports compliance and security review."
+                        }
+                    },
+                    {
+                        id: "q10",
+                        text: "Will they use your data for AI training or product improvement?",
+                        hint: "Check their privacy policy or ask directly. This is becoming a major IP and privacy concern.",
+                        options: [
+                            { value: "no", label: "No, our data is never used for their AI/ML", risk: "low" },
+                            { value: "opt_out", label: "Yes, but we can opt out", risk: "medium" },
+                            { value: "yes", label: "Yes, it's part of their service", risk: "high" },
+                            { value: "unclear", label: "Not disclosed or vague", risk: "high" }
+                        ],
+                        riskMessages: {
+                            high: "⚠️ Your confidential data could be training their AI. This is an IP and confidentiality risk.",
+                            medium: "Opt-out exists but verify it actually prevents all AI training use.",
+                            low: "No secondary use of data protects your confidentiality and IP."
+                        }
+                    },
+                    {
+                        id: "q11",
+                        text: "How long do they keep your data after contract ends?",
+                        hint: "Vague answers like 'as long as necessary' are red flags. Get specific timeframes.",
+                        options: [
+                            { value: "30days", label: "Deleted within 30 days", risk: "low" },
+                            { value: "90days", label: "Deleted within 90 days", risk: "low" },
+                            { value: "longer", label: "Kept longer than 90 days", risk: "medium" },
+                            { value: "indefinite", label: "Indefinite or no clear policy", risk: "high" }
+                        ],
+                        riskMessages: {
+                            high: "⚠️ Indefinite retention violates data minimization principles. Your data lives forever in their systems.",
+                            medium: "Long retention increases risk. Negotiate shorter periods in contract.",
+                            low: "Prompt deletion reduces long-term exposure risk."
+                        }
+                    }
+                ]
+            },
+            {
+                section: "Access & Authentication",
+                description: "How users access the system",
+                questions: [
+                    {
+                        id: "q12",
+                        text: "What authentication options are available?",
+                        hint: "Look for SSO (Single Sign-On) and MFA (Multi-Factor Authentication) support.",
+                        options: [
+                            { value: "enterprise", label: "SSO and MFA supported", risk: "low" },
+                            { value: "mfa", label: "MFA available but no SSO", risk: "medium" },
+                            { value: "basic", label: "Password only", risk: "high" }
+                        ],
+                        riskMessages: {
+                            high: "⚠️ Password-only authentication is weak. MFA should be table stakes. No SSO means manual user provisioning.",
+                            medium: "MFA is good. SSO would improve security and user management. Consider this for scaling.",
+                            low: "Enterprise authentication with SSO and MFA provides strong security and centralized control."
+                        }
+                    },
+                    {
+                        id: "q13",
+                        text: "Can you assign role-based access controls?",
+                        hint: "Can different users have different permission levels? Important for least-privilege access.",
+                        options: [
+                            { value: "granular", label: "Granular role-based permissions", risk: "low" },
+                            { value: "basic", label: "Basic roles (admin, user, etc.)", risk: "low" },
+                            { value: "none", label: "All users see everything", risk: "high" }
+                        ],
+                        riskMessages: {
+                            high: "⚠️ No access controls means any user can access all data. This violates least-privilege principles.",
+                            low: "Role-based access controls support proper access management."
+                        }
+                    }
+                ]
+            },
+            {
+                section: "Incident Response & Resilience",
+                description: "What happens when things go wrong",
+                questions: [
+                    {
+                        id: "q14",
+                        text: "Do they have a documented incident response plan with notification procedures?",
+                        hint: "Ask: 'If there's a security incident affecting our data, how and when will you notify us?'",
+                        options: [
+                            { value: "documented", label: "Yes, documented plan with specific notification timeframes", risk: "low" },
+                            { value: "informal", label: "They said they'd notify us but no documented SLA", risk: "medium" },
+                            { value: "none", label: "No clear incident response process", risk: "high" }
+                        ],
+                        riskMessages: {
+                            high: "⚠️ Without incident response procedures, breaches may go undetected or unreported. Request their IR policy.",
+                            medium: "Get notification commitments in writing. Industry standard is 24-72 hours for notification.",
+                            low: "Documented incident response with clear notification procedures shows maturity."
+                        }
+                    },
+                    {
+                        id: "q15",
+                        text: "Do they have tested backup and disaster recovery procedures?",
+                        hint: "Ask: 'How often do you back up data? When did you last test recovery?' Look for RPO/RTO commitments.",
+                        options: [
+                            { value: "tested", label: "Regular backups with tested recovery (they can provide RPO/RTO)", risk: "low" },
+                            { value: "backups", label: "They do backups but haven't mentioned testing", risk: "medium" },
+                            { value: "unclear", label: "No clear backup/recovery strategy", risk: "high" }
+                        ],
+                        riskMessages: {
+                            high: "⚠️ Untested backups are not backups. Data loss could be permanent. This is critical for business continuity.",
+                            medium: "Backups are good, but untested recovery is risky. Ask when they last performed a restoration test.",
+                            low: "Tested backup and recovery with defined RPO/RTO provides resilience assurance."
+                        }
+                    }
+                ]
+            }
+        ];
+
+        let answers = {};
+        let totalQuestions = 0;
+
+        function initQuestionnaire() {
+            const container = document.getElementById('questionnaire');
+            questionnaire.forEach(section => {
+                const sectionDiv = document.createElement('div');
+                sectionDiv.className = 'section';
+                
+                sectionDiv.innerHTML = `
+                    <h2>${section.section}</h2>
+                    <p class="section-description">${section.description}</p>
+                `;
+                
+                section.questions.forEach(question => {
+                    totalQuestions++;
+                    const questionDiv = document.createElement('div');
+                    questionDiv.className = 'question';
+                    questionDiv.id = `question-${question.id}`;
+                    
+                    let optionsHtml = '';
+                    question.options.forEach((option, index) => {
+                        optionsHtml += `
+                            <label class="option" data-risk="${option.risk}">
+                                <input type="radio" name="${question.id}" value="${option.value}" 
+                                       onchange="handleAnswer('${question.id}', '${option.value}', '${option.risk}')">
+                                <span>${option.label}</span>
+                            </label>
+                        `;
+                    });
+                    
+                    questionDiv.innerHTML = `
+                        <div class="question-text">${question.text}</div>
+                        ${question.hint ? `<div style="font-size: 13px; color: #718096; margin-bottom: 12px; font-style: italic;">💡 ${question.hint}</div>` : ''}
+                        <div class="options">
+                            ${optionsHtml}
+                        </div>
+                        <div class="risk-indicator" id="risk-${question.id}"></div>
+                        <div class="notes-area">
+                            <label>Your notes:</label>
+                            <textarea id="notes-${question.id}" placeholder="Add any details about their answer, concerns, or follow-up questions..."></textarea>
+                        </div>
+                    `;
+                    
+                    sectionDiv.appendChild(questionDiv);
+                });
+                
+                container.appendChild(sectionDiv);
+            });
+            
+            // Set today's date
+            document.getElementById('assessmentDate').valueAsDate = new Date();
+        }
+
+        function handleAnswer(questionId, value, risk) {
+            answers[questionId] = {
+                value: value,
+                risk: risk,
+                notes: document.getElementById(`notes-${questionId}`).value
+            };
+            
+            // Update visual feedback
+            const questionDiv = document.getElementById(`question-${questionId}`);
+            const options = questionDiv.querySelectorAll('.option');
+            options.forEach(opt => {
+                opt.classList.remove('selected');
+                if (opt.querySelector('input').checked) {
+                    opt.classList.add('selected');
+                }
+            });
+            
+            // Show risk indicator
+            const question = questionnaire
+                .flatMap(s => s.questions)
+                .find(q => q.id === questionId);
+            
+            const riskIndicator = document.getElementById(`risk-${questionId}`);
+            const message = question.riskMessages[risk];
+            
+            if (message && risk !== 'low') {
+                riskIndicator.className = `risk-indicator risk-${risk} show`;
+                riskIndicator.textContent = message;
+            } else {
+                riskIndicator.className = 'risk-indicator';
+                riskIndicator.style.display = 'none';
+            }
+            
+            updateScore();
+            updateEmailPreviews();  // Update email previews when answers change
+        }
+
+        function updateScore() {
+            const answered = Object.keys(answers).length;
+            const progress = (answered / totalQuestions) * 100;
+            document.getElementById('progressFill').style.width = progress + '%';
+            
+            if (answered === 0) return;
+            
+            const riskCounts = {
+                critical: 0,
+                high: 0,
+                medium: 0,
+                low: 0
+            };
+            
+            Object.values(answers).forEach(answer => {
+                riskCounts[answer.risk]++;
+            });
+            
+            // Calculate overall risk score
+            const weights = { critical: 10, high: 5, medium: 2, low: 0 };
+            const totalRisk = Object.entries(riskCounts).reduce((sum, [risk, count]) => {
+                return sum + (weights[risk] * count);
+            }, 0);
+            
+            const maxRisk = totalQuestions * weights.critical;
+            const riskScore = ((totalRisk / maxRisk) * 100).toFixed(0);
+            
+            // Update score breakdown
+            const breakdownDiv = document.getElementById('scoreBreakdown');
+            breakdownDiv.innerHTML = `
+                <div class="score-item" style="background: #fee;">
+                    <div class="label">🛑 Critical Issues</div>
+                    <div class="value">${riskCounts.critical}</div>
+                </div>
+                <div class="score-item" style="background: #fff3cd;">
+                    <div class="label">⚠️ High Concerns</div>
+                    <div class="value">${riskCounts.high}</div>
+                </div>
+                <div class="score-item" style="background: #fff8e1;">
+                    <div class="label">⚠️ Medium Issues</div>
+                    <div class="value">${riskCounts.medium}</div>
+                </div>
+                <div class="score-item" style="background: #d4edda;">
+                    <div class="label">✓ Good Answers</div>
+                    <div class="value">${riskCounts.low}</div>
+                </div>
+            `;
+            
+            // Determine overall risk level
+            let overallRisk, riskClass, recommendation;
+            if (riskCounts.critical > 0) {
+                overallRisk = "🛑 STOP - HIGH RISK";
+                riskClass = "risk-critical";
+                recommendation = `Found ${riskCounts.critical} critical issue${riskCounts.critical > 1 ? 's' : ''}. Do not proceed without consulting your vCISO or security team. These are deal-breakers for most organizations.`;
+            } else if (riskCounts.high >= 3) {
+                overallRisk = "⚠️ CAUTION - NEEDS REVIEW";
+                riskClass = "risk-high";
+                recommendation = `Found ${riskCounts.high} significant concern${riskCounts.high > 1 ? 's' : ''}. Contact your vCISO before signing anything. They can help determine if these risks can be mitigated.`;
+            } else if (riskCounts.high > 0 || riskCounts.medium >= 5) {
+                overallRisk = "⚠️ REVIEW RECOMMENDED";
+                riskClass = "risk-medium";
+                recommendation = "Some concerns present. Loop in your vCISO to review the flagged items, especially if this vendor will handle sensitive data. You may be able to address these through contract terms.";
+            } else {
+                overallRisk = "✓ LOOKS REASONABLE";
+                riskClass = "risk-low";
+                recommendation = "This vendor appears to have basic security practices in place. You can likely proceed, but still consider having your vCISO review the contract for critical systems.";
+            }
+            
+            const overallDiv = document.getElementById('overallRisk');
+            overallDiv.className = `overall-risk ${riskClass}`;
+            overallDiv.innerHTML = `
+                <div>${overallRisk}</div>
+                <div style="font-size: 14px; font-weight: normal; margin-top: 8px;">${recommendation}</div>
+                <div style="font-size: 12px; opacity: 0.8; margin-top: 8px;">${answered} of ${totalQuestions} questions answered</div>
+            `;
+        }
+
+        function exportJSON() {
+            const data = {
+                vendor: {
+                    name: document.getElementById('vendorName').value,
+                    assessmentDate: document.getElementById('assessmentDate').value,
+                    assessor: document.getElementById('assessor').value
+                },
+                dataTypes: {
+                    employee: document.getElementById('dataEmployee').checked,
+                    customer: document.getElementById('dataCustomer').checked,
+                    financial: document.getElementById('dataFinancial').checked,
+                    healthcare: document.getElementById('dataHealthcare').checked,
+                    network: document.getElementById('dataNetwork').checked,
+                    basic: document.getElementById('dataBasic').checked
+                },
+                answers: answers,
+                questionnaire: questionnaire,
+                exportDate: new Date().toISOString()
+            };
+            
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `vendor-assessment-${data.vendor.name || 'unnamed'}-${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        function exportCSV() {
+            const vendorName = document.getElementById('vendorName').value || 'unnamed';
+            const assessmentDate = document.getElementById('assessmentDate').value;
+            const assessor = document.getElementById('assessor').value;
+            
+            // Get data types
+            const dataTypes = [];
+            if (document.getElementById('dataEmployee').checked) dataTypes.push('Employee PII');
+            if (document.getElementById('dataCustomer').checked) dataTypes.push('Customer Data');
+            if (document.getElementById('dataFinancial').checked) dataTypes.push('Financial Data');
+            if (document.getElementById('dataHealthcare').checked) dataTypes.push('Healthcare/PHI');
+            if (document.getElementById('dataNetwork').checked) dataTypes.push('Internal Network/System Access');
+            if (document.getElementById('dataBasic').checked) dataTypes.push('Basic Operations');
+            
+            // Build CSV content
+            let csv = 'Vendor Security Assessment\n\n';
+            csv += 'Vendor Name,' + escapeCSV(vendorName) + '\n';
+            csv += 'Assessment Date,' + escapeCSV(assessmentDate) + '\n';
+            csv += 'Assessed By,' + escapeCSV(assessor) + '\n';
+            csv += 'Data Types,' + escapeCSV(dataTypes.join('; ')) + '\n';
+            csv += '\n';
+            
+            // Add headers
+            csv += 'Section,Question,Answer,Risk Level,Notes\n';
+            
+            // Add questions and answers
+            questionnaire.forEach(section => {
+                section.questions.forEach(question => {
+                    const answer = answers[question.id];
+                    if (answer) {
+                        const selectedOption = question.options.find(opt => opt.value === answer.value);
+                        csv += escapeCSV(section.section) + ',';
+                        csv += escapeCSV(question.text) + ',';
+                        csv += escapeCSV(selectedOption ? selectedOption.label : '') + ',';
+                        csv += escapeCSV(answer.risk.toUpperCase()) + ',';
+                        csv += escapeCSV(answer.notes || '') + '\n';
+                    } else {
+                        csv += escapeCSV(section.section) + ',';
+                        csv += escapeCSV(question.text) + ',';
+                        csv += 'Not Answered,N/A,\n';
+                    }
+                });
+            });
+            
+            // Add summary
+            csv += '\n';
+            csv += 'Risk Summary\n';
+            const riskCounts = { critical: 0, high: 0, medium: 0, low: 0 };
+            Object.values(answers).forEach(answer => {
+                riskCounts[answer.risk]++;
+            });
+            csv += 'Critical Issues,' + riskCounts.critical + '\n';
+            csv += 'High Concerns,' + riskCounts.high + '\n';
+            csv += 'Medium Issues,' + riskCounts.medium + '\n';
+            csv += 'Good Answers,' + riskCounts.low + '\n';
+            
+            // Download CSV
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `vendor-assessment-${vendorName}-${new Date().toISOString().split('T')[0]}.csv`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+        
+        function escapeCSV(str) {
+            if (str === null || str === undefined) return '';
+            str = String(str);
+            if (str.includes(',') || str.includes('"') || str.includes('\n')) {
+                return '"' + str.replace(/"/g, '""') + '"';
+            }
+            return str;
+        }
+
+        function saveProgress() {
+            const data = {
+                vendor: {
+                    name: document.getElementById('vendorName').value,
+                    assessmentDate: document.getElementById('assessmentDate').value,
+                    assessor: document.getElementById('assessor').value
+                },
+                dataTypes: {
+                    employee: document.getElementById('dataEmployee').checked,
+                    customer: document.getElementById('dataCustomer').checked,
+                    financial: document.getElementById('dataFinancial').checked,
+                    healthcare: document.getElementById('dataHealthcare').checked,
+                    network: document.getElementById('dataNetwork').checked,
+                    basic: document.getElementById('dataBasic').checked
+                },
+                answers: answers
+            };
+            localStorage.setItem('vendorAssessment', JSON.stringify(data));
+            alert('Progress saved! You can close this page and return later.');
+        }
+
+        function loadProgress() {
+            const saved = localStorage.getItem('vendorAssessment');
+            if (!saved) {
+                alert('No saved progress found.');
+                return;
+            }
+            
+            const data = JSON.parse(saved);
+            restoreAssessment(data);
+            alert('Progress loaded successfully!');
+        }
+
+        function resetAssessment() {
+            if (confirm('Start over with a blank assessment? Your current answers will be lost unless you saved them first.')) {
+                answers = {};
+                document.getElementById('vendorName').value = '';
+                document.getElementById('assessor').value = '';
+                document.getElementById('assessmentDate').valueAsDate = new Date();
+                
+                // Reset data type checkboxes
+                document.getElementById('dataEmployee').checked = false;
+                document.getElementById('dataCustomer').checked = false;
+                document.getElementById('dataFinancial').checked = false;
+                document.getElementById('dataHealthcare').checked = false;
+                document.getElementById('dataNetwork').checked = false;
+                document.getElementById('dataBasic').checked = false;
+                updateDataTypeWarning();
+                
+                document.querySelectorAll('input[type="radio"]').forEach(radio => radio.checked = false);
+                document.querySelectorAll('textarea').forEach(textarea => textarea.value = '');
+                document.querySelectorAll('.option').forEach(opt => opt.classList.remove('selected'));
+                document.querySelectorAll('.risk-indicator').forEach(ind => {
+                    ind.className = 'risk-indicator';
+                    ind.style.display = 'none';
+                });
+                
+                updateScore();
+                document.getElementById('overallRisk').textContent = 'Start answering questions to see if there are any red flags';
+                
+                // Clear URL hash
+                history.replaceState(null, null, ' ');
+            }
+        }
+
+        // Initialize on load
+        initQuestionnaire();
+        
+        // Handle data type checkbox changes
+        const dataCheckboxes = ['dataEmployee', 'dataCustomer', 'dataFinancial', 'dataHealthcare', 'dataNetwork', 'dataBasic'];
+        dataCheckboxes.forEach(id => {
+            const checkbox = document.getElementById(id);
+            if (checkbox) {
+                checkbox.addEventListener('change', () => {
+                    updateDataTypeWarning();
+                    updateEmailPreviews();  // Update emails when data types change
+                });
+            }
+        });
+        
+        // Update emails when vendor info changes
+        document.getElementById('vendorName').addEventListener('input', updateEmailPreviews);
+        document.getElementById('assessor').addEventListener('input', updateEmailPreviews);
+        
+        // Update emails when notes change
+        questionnaire.forEach(section => {
+            section.questions.forEach(question => {
+                const notesField = document.getElementById(`notes-${question.id}`);
+                if (notesField) {
+                    notesField.addEventListener('input', () => {
+                        if (answers[question.id]) {
+                            answers[question.id].notes = notesField.value;
+                            updateEmailPreviews();
+                        }
+                    });
+                }
+            });
+        });
+        
+        // Generate initial email previews
+        updateEmailPreviews();
+        
+        function updateDataTypeWarning() {
+            const sensitiveChecked = 
+                document.getElementById('dataEmployee').checked ||
+                document.getElementById('dataCustomer').checked ||
+                document.getElementById('dataFinancial').checked ||
+                document.getElementById('dataHealthcare').checked ||
+                document.getElementById('dataNetwork').checked;
+            
+            const warning = document.getElementById('dataTypeWarning');
+            if (sensitiveChecked) {
+                warning.style.display = 'block';
+            } else {
+                warning.style.display = 'none';
+            }
+        }
+
+        // Auto-load from localStorage on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            // First check URL hash for shared assessment
+            loadFromHash();
+            
+            // If no hash, check localStorage
+            if (Object.keys(answers).length === 0) {
+                const saved = localStorage.getItem('vendorAssessment');
+                if (saved) {
+                    const data = JSON.parse(saved);
+                    restoreAssessment(data);
+                }
+            }
+        });
+
+        function loadFromHash() {
+            const hash = window.location.hash.substring(1);
+            if (!hash) return;
+            
+            try {
+                const decoded = atob(hash);
+                const data = JSON.parse(decoded);
+                restoreAssessment(data);
+            } catch (e) {
+                console.error('Failed to load from URL hash:', e);
+            }
+        }
+
+        function restoreAssessment(data) {
+            if (data.vendor) {
+                document.getElementById('vendorName').value = data.vendor.name || '';
+                document.getElementById('assessmentDate').value = data.vendor.assessmentDate || '';
+                document.getElementById('assessor').value = data.vendor.assessor || '';
+            }
+            
+            // Restore data type selections
+            if (data.dataTypes) {
+                document.getElementById('dataEmployee').checked = data.dataTypes.employee || false;
+                document.getElementById('dataCustomer').checked = data.dataTypes.customer || false;
+                document.getElementById('dataFinancial').checked = data.dataTypes.financial || false;
+                document.getElementById('dataHealthcare').checked = data.dataTypes.healthcare || false;
+                document.getElementById('dataNetwork').checked = data.dataTypes.network || false;
+                document.getElementById('dataBasic').checked = data.dataTypes.basic || false;
+                updateDataTypeWarning();
+            }
+            
+            if (data.answers) {
+                answers = data.answers;
+                
+                // Restore radio selections
+                Object.entries(answers).forEach(([questionId, answer]) => {
+                    const radio = document.querySelector(`input[name="${questionId}"][value="${answer.value}"]`);
+                    if (radio) {
+                        radio.checked = true;
+                        handleAnswer(questionId, answer.value, answer.risk);
+                    }
+                    const notesField = document.getElementById(`notes-${questionId}`);
+                    if (notesField && answer.notes) {
+                        notesField.value = answer.notes;
+                    }
+                });
+                
+                updateScore();
+            }
+        }
+
+        function shareLink() {
+            const data = {
+                vendor: {
+                    name: document.getElementById('vendorName').value,
+                    assessmentDate: document.getElementById('assessmentDate').value,
+                    assessor: document.getElementById('assessor').value
+                },
+                dataTypes: {
+                    employee: document.getElementById('dataEmployee').checked,
+                    customer: document.getElementById('dataCustomer').checked,
+                    financial: document.getElementById('dataFinancial').checked,
+                    healthcare: document.getElementById('dataHealthcare').checked,
+                    network: document.getElementById('dataNetwork').checked,
+                    basic: document.getElementById('dataBasic').checked
+                },
+                answers: answers
+            };
+            
+            const encoded = btoa(JSON.stringify(data));
+            const url = window.location.origin + window.location.pathname + '#' + encoded;
+            
+            // Copy to clipboard
+            navigator.clipboard.writeText(url).then(() => {
+                alert('Share link copied to clipboard! Anyone with this link can view your assessment.');
+            }).catch(() => {
+                // Fallback for older browsers
+                prompt('Copy this link to share:', url);
+            });
+        }
+
+        function updateEmailPreviews() {
+            // Update both email previews when any answer changes
+            generateVendorEmailPreview();
+            generateVCISOEmailPreview();
+        }
+
+        function showEmailTab(type) {
+            // Switch between vendor and vCISO email tabs
+            const tabs = document.querySelectorAll('.email-tab');
+            const vendorContent = document.getElementById('vendorEmailContent');
+            const vcisoContent = document.getElementById('vcisoEmailContent');
+            
+            tabs.forEach(tab => tab.classList.remove('active'));
+            
+            if (type === 'vendor') {
+                tabs[0].classList.add('active');
+                vendorContent.style.display = 'block';
+                vcisoContent.style.display = 'none';
+            } else {
+                tabs[1].classList.add('active');
+                vendorContent.style.display = 'none';
+                vcisoContent.style.display = 'block';
+            }
+        }
+
+        function copyEmailContent(type) {
+            let emailText = '';
+            if (type === 'vendor') {
+                const subject = document.getElementById('vendorSubject').textContent;
+                const body = document.getElementById('vendorEmailBody').textContent;
+                emailText = `Subject: ${subject}\n\n${body}`;
+            } else {
+                const subject = document.getElementById('vcisoSubject').textContent;
+                const body = document.getElementById('vcisoEmailBody').textContent;
+                emailText = `Subject: ${subject}\n\n${body}`;
+            }
+            
+            navigator.clipboard.writeText(emailText).then(() => {
+                alert('Email copied to clipboard!');
+            }).catch(() => {
+                prompt('Copy this email:', emailText);
+            });
+        }
+
+        function generateVendorEmailPreview() {
+            const vendorName = document.getElementById('vendorName').value || '[Vendor Name]';
+            const assessor = document.getElementById('assessor').value || '[Your Name]';
+            
+            // Identify specific concerns for a more conversational approach
+            const concerns = [];
+            const followups = [];
+            
+            Object.entries(answers).forEach(([questionId, answer]) => {
+                if (answer.risk === 'critical' || answer.risk === 'high') {
+                    const question = questionnaire.flatMap(s => s.questions).find(q => q.id === questionId);
+                    if (question) {
+                        // Make the concerns more conversational
+                        if (questionId === 'q5' && answer.risk === 'critical') {
+                            concerns.push("data encryption capabilities");
+                        } else if (questionId === 'q8' && answer.risk === 'critical') {
+                            concerns.push("data processing agreement");
+                        } else if (questionId === 'q9' && answer.risk === 'high') {
+                            concerns.push("third-party data sharing practices");
+                        } else if (questionId === 'q10' && answer.risk === 'high') {
+                            concerns.push("AI training on customer data");
+                        } else if (questionId === 'q11' && answer.risk === 'high') {
+                            concerns.push("data retention policies");
+                        } else if (questionId === 'q4' && answer.risk === 'high') {
+                            followups.push("any security audits or certifications you're working toward");
+                        }
+                    }
+                }
+            });
+
+            let subject = `Security Documentation Request - ${vendorName}`;
+            let body = '';
+            
+            if (Object.keys(answers).length === 0) {
+                body = "Start filling out the assessment above to generate a customized email to the vendor.";
+            } else {
+                body = `Hi [Vendor Contact],
+
+Thanks for the great conversation about ${vendorName}. I'm excited about the potential of working together.
+
+As we discussed, we need to complete a quick security review as part of our vendor onboarding process. `;
+
+                if (concerns.length > 0) {
+                    body += `Based on what I've learned so far, I'd particularly like to understand more about your ${concerns.join(', ')}.
+
+`;
+                } else {
+                    body += `Everything looks pretty straightforward so far, just need to gather the standard documentation.
+
+`;
+                }
+                
+                body += `Could you help me out with the following?
+
+• A link to your security documentation or trust center (if you have one online)
+• Your most recent SOC 2 report or similar security certification
+• Your standard Data Processing Agreement`;
+                
+                if (followups.length > 0) {
+                    body += `
+• Information about ${followups.join(' and ')}`;
+                }
+                
+                // Add specific requests based on concerns
+                const hasSubprocessorConcern = answers.q9 && answers.q9.risk === 'high';
+                const hasAIConcern = answers.q10 && (answers.q10.risk === 'high' || answers.q10.risk === 'medium');
+                const hasRetentionConcern = answers.q11 && answers.q11.risk === 'high';
+                
+                if (hasSubprocessorConcern) {
+                    body += `
+• A list of any third parties that would have access to our data`;
+                }
+                
+                if (hasAIConcern) {
+                    body += `
+• Clarification on whether our data would be used for any AI/ML model training`;
+                }
+                
+                if (hasRetentionConcern) {
+                    body += `
+• Your data deletion timeline after contract termination`;
+                }
+                
+                body += `
+
+Also, just to understand your security posture better:
+- How do you handle security incidents and breach notifications?
+- What's your backup and disaster recovery setup?
+- Do you support SSO and MFA for user access?
+
+No rush on this - I know gathering docs can take a bit. Would next week work for getting these over?
+
+Thanks!
+${assessor}`;
+            }
+            
+            document.getElementById('vendorSubject').textContent = subject;
+            document.getElementById('vendorEmailBody').textContent = body;
+        }
+
+        function generateVCISOEmailPreview() {
+            const vendorName = document.getElementById('vendorName').value || '[Vendor Name]';
+            const assessor = document.getElementById('assessor').value || '[Your Name]';
+            
+            // Calculate risk profile
+            const riskCounts = { critical: 0, high: 0, medium: 0, low: 0 };
+            Object.values(answers).forEach(answer => {
+                riskCounts[answer.risk]++;
+            });
+            
+            // Determine overall risk and tone
+            let overallRisk, tone, recommendation;
+            if (riskCounts.critical > 0) {
+                overallRisk = "HIGH RISK";
+                tone = "urgent";
+                recommendation = "We need to discuss this one before moving forward.";
+            } else if (riskCounts.high >= 3) {
+                overallRisk = "ELEVATED RISK";
+                tone = "concerned";
+                recommendation = "Several red flags here - let's review together.";
+            } else if (riskCounts.high > 0 || riskCounts.medium >= 5) {
+                overallRisk = "MODERATE RISK";
+                tone = "cautious";
+                recommendation = "Some concerns but probably manageable with the right controls.";
+            } else {
+                overallRisk = "LOW RISK";
+                tone = "routine";
+                recommendation = "Looks pretty solid - standard review should be fine.";
+            }
+
+            // Get data types in a more natural way
+            const dataTypes = [];
+            if (document.getElementById('dataEmployee').checked) dataTypes.push('employee PII');
+            if (document.getElementById('dataCustomer').checked) dataTypes.push('customer data');
+            if (document.getElementById('dataFinancial').checked) dataTypes.push('financial info');
+            if (document.getElementById('dataHealthcare').checked) dataTypes.push('healthcare data (!)');
+            if (document.getElementById('dataNetwork').checked) dataTypes.push('network access (!)');
+            if (document.getElementById('dataBasic').checked) dataTypes.push('basic ops data');
+
+            let subject = `Vendor Assessment: ${vendorName} - ${overallRisk}`;
+            let body = '';
+
+            if (Object.keys(answers).length === 0) {
+                body = "Start filling out the assessment above to generate a summary for your vCISO.";
+            } else {
+                // More conversational opening based on risk level
+                if (tone === "urgent") {
+                    body = `Hey [vCISO Name],
+
+Just finished the initial assessment for ${vendorName} and we've got some serious issues.
+
+${recommendation}
+
+`;
+                } else if (tone === "concerned") {
+                    body = `Hi [vCISO Name],
+
+Completed the vendor assessment for ${vendorName}. ${recommendation}
+
+`;
+                } else {
+                    body = `Hi [vCISO Name],
+
+Quick vendor assessment for ${vendorName} is done. ${recommendation}
+
+`;
+                }
+
+                // Data sensitivity section
+                if (dataTypes.length > 0) {
+                    body += `They'd be handling: ${dataTypes.join(', ')}
+
+`;
+                }
+
+                // Key issues in natural language
+                const criticalIssues = [];
+                const highIssues = [];
+                
+                Object.entries(answers).forEach(([questionId, answer]) => {
+                    const question = questionnaire.flatMap(s => s.questions).find(q => q.id === questionId);
+                    if (question) {
+                        if (answer.risk === 'critical') {
+                            if (questionId === 'q5') criticalIssues.push("No encryption (!!)");
+                            if (questionId === 'q8') criticalIssues.push("Won't sign a DPA/BAA");
+                        } else if (answer.risk === 'high') {
+                            if (questionId === 'q3') highIssues.push("No security documentation");
+                            if (questionId === 'q4') highIssues.push("No security certifications");
+                            if (questionId === 'q9') highIssues.push("Won't disclose sub-processors");
+                            if (questionId === 'q10') highIssues.push("Uses our data for AI training");
+                            if (questionId === 'q11') highIssues.push("Keeps data indefinitely");
+                            if (questionId === 'q12') highIssues.push("Password-only auth");
+                            if (questionId === 'q14') highIssues.push("No incident response plan");
+                            if (questionId === 'q15') highIssues.push("No backup strategy");
+                        }
+                    }
+                });
+
+                if (criticalIssues.length > 0) {
+                    body += `🚨 Critical Issues:
+${criticalIssues.map(i => `• ${i}`).join('\n')}
+
+`;
+                }
+
+                if (highIssues.length > 0) {
+                    body += `Major Concerns:
+${highIssues.map(i => `• ${i}`).join('\n')}
+
+`;
+                }
+
+                // Next steps based on risk
+                body += `Quick Stats:
+• Questions answered: ${Object.keys(answers).length}/15
+• Critical issues: ${riskCounts.critical}
+• High concerns: ${riskCounts.high}
+• Medium issues: ${riskCounts.medium}
+
+`;
+
+                if (tone === "urgent") {
+                    body += `Next Steps:
+1. I'll request their security docs but honestly not optimistic
+2. Should we even continue evaluating them?
+3. Maybe we need to look at alternatives?
+
+Want to jump on a quick call about this?`;
+                } else if (tone === "concerned") {
+                    body += `Next Steps:
+1. I've requested their security documentation
+2. Once we get it, let's review together
+3. We'll probably need some contractual protections here
+
+Let me know if you want to discuss before they respond.`;
+                } else {
+                    body += `Next Steps:
+1. Requesting their standard security docs
+2. Will forward when received
+3. Standard review process should work
+
+I'll loop you in if anything concerning comes up.`;
+                }
+
+                // Add the share link
+                const data = {
+                    vendor: {
+                        name: document.getElementById('vendorName').value,
+                        assessmentDate: document.getElementById('assessmentDate').value,
+                        assessor: document.getElementById('assessor').value
+                    },
+                    dataTypes: {
+                        employee: document.getElementById('dataEmployee').checked,
+                        customer: document.getElementById('dataCustomer').checked,
+                        financial: document.getElementById('dataFinancial').checked,
+                        healthcare: document.getElementById('dataHealthcare').checked,
+                        network: document.getElementById('dataNetwork').checked,
+                        basic: document.getElementById('dataBasic').checked
+                    },
+                    answers: answers
+                };
+                const encoded = btoa(JSON.stringify(data));
+                const shareUrl = window.location.origin + window.location.pathname + '#' + encoded;
+                
+                body += `
+
+Full assessment: ${shareUrl}
+
+${assessor}`;
+            }
+            
+            document.getElementById('vcisoSubject').textContent = subject;
+            document.getElementById('vcisoEmailBody').textContent = body;
+        }
+
+        // Keep the old functions for backward compatibility but have them just copy the preview
+        function generateVendorEmail() {
+            copyEmailContent('vendor');
+        }
+
+        function generateVCISOEmail() {
+            copyEmailContent('vciso');
+        }
+    </script>
+</body>
+</html>
