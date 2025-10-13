@@ -429,6 +429,10 @@
                     <input type="text" id="vendorName" placeholder="e.g., Acme Software Inc.">
                 </div>
                 <div class="form-group">
+                    <label for="vendorWebsite">Vendor Website</label>
+                    <input type="text" id="vendorWebsite" placeholder="e.g., https://acmesoftware.com">
+                </div>
+                <div class="form-group">
                     <label for="assessmentDate">Today's Date</label>
                     <input type="date" id="assessmentDate">
                 </div>
@@ -548,6 +552,7 @@
 
         <footer>
             <p><strong>This is a screening tool, not a complete security audit.</strong> Use it to identify obvious red flags and know when to involve your vCISO for a deeper assessment.</p>
+            <p style="margin-top: 16px; font-size: 14px; color: #718096;">🔒 This information never leaves your browser • Made with love by <a href="https://www.adversis.io">Adversis</a> •  © 2025</p>
         </footer>
     </div>
 
@@ -978,7 +983,7 @@
             } else {
                 overallRisk = "✓ LOOKS REASONABLE";
                 riskClass = "risk-low";
-                recommendation = "This vendor appears to have basic security practices in place. You can likely proceed, but still consider having your vCISO review the contract for critical systems.";
+                recommendation = "This vendor appears to have basic security practices in place. You can likely proceed, but consider having your vCISO review the contract for critical systems. As always, update your documentation to reflect this vendor, risk analysis, and data/access details.";
             }
             
             const overallDiv = document.getElementById('overallRisk');
@@ -994,6 +999,7 @@
             const data = {
                 vendor: {
                     name: document.getElementById('vendorName').value,
+                    website: document.getElementById('vendorWebsite').value,
                     assessmentDate: document.getElementById('assessmentDate').value,
                     assessor: document.getElementById('assessor').value
                 },
@@ -1023,9 +1029,10 @@
 
         function exportCSV() {
             const vendorName = document.getElementById('vendorName').value || 'unnamed';
+            const vendorWebsite = document.getElementById('vendorWebsite').value;
             const assessmentDate = document.getElementById('assessmentDate').value;
             const assessor = document.getElementById('assessor').value;
-            
+
             // Get data types
             const dataTypes = [];
             if (document.getElementById('dataEmployee').checked) dataTypes.push('Employee PII');
@@ -1034,10 +1041,11 @@
             if (document.getElementById('dataHealthcare').checked) dataTypes.push('Healthcare/PHI');
             if (document.getElementById('dataNetwork').checked) dataTypes.push('Internal Network/System Access');
             if (document.getElementById('dataBasic').checked) dataTypes.push('Basic Operations');
-            
+
             // Build CSV content
             let csv = 'Vendor Security Assessment\n\n';
             csv += 'Vendor Name,' + escapeCSV(vendorName) + '\n';
+            csv += 'Vendor Website,' + escapeCSV(vendorWebsite) + '\n';
             csv += 'Assessment Date,' + escapeCSV(assessmentDate) + '\n';
             csv += 'Assessed By,' + escapeCSV(assessor) + '\n';
             csv += 'Data Types,' + escapeCSV(dataTypes.join('; ')) + '\n';
@@ -1102,6 +1110,7 @@
             const data = {
                 vendor: {
                     name: document.getElementById('vendorName').value,
+                    website: document.getElementById('vendorWebsite').value,
                     assessmentDate: document.getElementById('assessmentDate').value,
                     assessor: document.getElementById('assessor').value
                 },
@@ -1135,6 +1144,7 @@
             if (confirm('Start over with a blank assessment? Your current answers will be lost unless you saved them first.')) {
                 answers = {};
                 document.getElementById('vendorName').value = '';
+                document.getElementById('vendorWebsite').value = '';
                 document.getElementById('assessor').value = '';
                 document.getElementById('assessmentDate').valueAsDate = new Date();
                 
@@ -1180,6 +1190,7 @@
         
         // Update emails when vendor info changes
         document.getElementById('vendorName').addEventListener('input', updateEmailPreviews);
+        document.getElementById('vendorWebsite').addEventListener('input', updateEmailPreviews);
         document.getElementById('assessor').addEventListener('input', updateEmailPreviews);
         
         // Update emails when notes change
@@ -1247,6 +1258,7 @@
         function restoreAssessment(data) {
             if (data.vendor) {
                 document.getElementById('vendorName').value = data.vendor.name || '';
+                document.getElementById('vendorWebsite').value = data.vendor.website || '';
                 document.getElementById('assessmentDate').value = data.vendor.assessmentDate || '';
                 document.getElementById('assessor').value = data.vendor.assessor || '';
             }
@@ -1286,6 +1298,7 @@
             const data = {
                 vendor: {
                     name: document.getElementById('vendorName').value,
+                    website: document.getElementById('vendorWebsite').value,
                     assessmentDate: document.getElementById('assessmentDate').value,
                     assessor: document.getElementById('assessor').value
                 },
@@ -1458,6 +1471,7 @@ ${assessor}`;
 
         function generateVCISOEmailPreview() {
             const vendorName = document.getElementById('vendorName').value || '[Vendor Name]';
+            const vendorWebsite = document.getElementById('vendorWebsite').value;
             const assessor = document.getElementById('assessor').value || '[Your Name]';
             
             // Calculate risk profile
@@ -1524,6 +1538,16 @@ Quick vendor assessment for ${vendorName} is done. ${recommendation}
 `;
                 }
 
+                // Vendor info section
+                body += `Vendor: ${vendorName}
+`;
+                if (vendorWebsite) {
+                    body += `Website: ${vendorWebsite}
+`;
+                }
+                body += `
+`;
+
                 // Data sensitivity section
                 if (dataTypes.length > 0) {
                     body += `They'd be handling: ${dataTypes.join(', ')}
@@ -1568,6 +1592,27 @@ ${highIssues.map(i => `• ${i}`).join('\n')}
 `;
                 }
 
+                // Add notes/questions section if there are any notes
+                const notesEntries = [];
+                Object.entries(answers).forEach(([questionId, answer]) => {
+                    if (answer.notes && answer.notes.trim()) {
+                        const question = questionnaire.flatMap(s => s.questions).find(q => q.id === questionId);
+                        if (question) {
+                            notesEntries.push({
+                                question: question.text,
+                                notes: answer.notes.trim()
+                            });
+                        }
+                    }
+                });
+
+                if (notesEntries.length > 0) {
+                    body += `Additional Notes & Questions:
+${notesEntries.map(entry => `• ${entry.question}\n  → ${entry.notes}`).join('\n\n')}
+
+`;
+                }
+
                 // Next steps based on risk
                 body += `Quick Stats:
 • Questions answered: ${Object.keys(answers).length}/15
@@ -1604,6 +1649,7 @@ I'll loop you in if anything concerning comes up.`;
                 const data = {
                     vendor: {
                         name: document.getElementById('vendorName').value,
+                        website: document.getElementById('vendorWebsite').value,
                         assessmentDate: document.getElementById('assessmentDate').value,
                         assessor: document.getElementById('assessor').value
                     },
